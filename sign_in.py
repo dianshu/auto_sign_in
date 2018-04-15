@@ -27,6 +27,7 @@ class SignIn(object):
             self.game_center_sign_in()
             self.community_sign_in()
             logging.info('签到结束')
+            logging.info('脚本将在5s后自动关闭')
         except:
             traceback.print_exc()
         finally:
@@ -155,7 +156,7 @@ class SignIn(object):
         action = TouchAction(self.driver)
         uninstall_pos = {'x': 190, 'y': 100}
         for game in games:
-            game_name = game.text
+            game_name = game.text.strip()
             if game_name == '腾讯新闻':
                 break
             action.long_press(el=game).move_to(**uninstall_pos).release().perform()
