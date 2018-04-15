@@ -13,7 +13,7 @@ def setUp():
         pos = pg.locateCenterOnScreen('start_appium.png')
     pg.click(*pos)
     sleep(20)
-    os.system('nox_adb connect 127.0.0.1:62001')
+    os.popen('adb connect 127.0.0.1:62001')
 
 
 def tearDown():
