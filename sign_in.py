@@ -28,6 +28,7 @@ class SignIn(object):
             self.community_sign_in()
             logging.info('签到结束')
             logging.info('脚本将在5s后自动关闭')
+            sleep(5)
         except:
             traceback.print_exc()
         finally:
@@ -54,14 +55,14 @@ class SignIn(object):
         # 打开应用
         self.driver.find_element_by_accessibility_id('OPPO社区').click()
         # 等待6s，跳过欢迎界面
-        sleep(6)
+        sleep(8)
         # 单击第一步的‘签到’
         self.driver.find_element_by_id('com.oppo.community:id/main_header_icon_img').click()
         # 单击第二步的‘签到’
         self.driver.find_element_by_id('com.oppo.community:id/my_homepage_item_view_label').click()
         # 单击第三步的‘签到’
         try:
-            sign_in = self.driver.find_element_by_xpath('//*[@resource-id="com.oppo.community:id/browser_layout"]/*[1]/*[5]/*[1]')
+            sign_in = self.driver.find_element_by_xpath('//*[@resource-id="com.oppo.community:id/browser_layout"]/*[1]/*[1]/*[5]/*[1]')
             sign_in.click()
             if sign_in.text == '已签到':
                 logging.info('OPPO社区 已签到')
@@ -103,9 +104,13 @@ class SignIn(object):
                     # 如果游戏小于50M，单击安装
                     if installed_game_count < 3 and 'M' in volume and float(volume[:-1]) < 50:
                         # 下载
-                        game.find_element_by_id('com.nearme.gamecenter:id/tv_hint').click()
-                        # 安装
-                        self.install_app_from_screen(installed_game_count + 1)
+                        install_btn = game.find_element_by_id('com.nearme.gamecenter:id/tv_hint')
+                        if install_btn.text == '打开':
+                            continue
+                        else:
+                            install_btn.click()
+                            while install_btn.text != '打开':
+                                sleep(6)
                         installed_game_count += 1
                 except NoSuchElementException:
                     pass
@@ -133,34 +138,20 @@ class SignIn(object):
         for _ in range(count):
             self.driver.swipe(0, int(height * 0.95), 0, int(height * 0.05), 1000)
 
-    def install_app_from_screen(self, install_count):
-        try:
-            logging.info('开始安装第%d个游戏' % install_count)
-            next_step_btn = WebDriverWait(self.driver, 120).until(EC.presence_of_element_located((By.ID, 'com.android.packageinstaller:id/ok_button')))
-            try:
-                while next_step_btn:
-                    next_step_btn.click()
-            except:
-                pass
-            complete_btn = WebDriverWait(self.driver, 120).until(EC.presence_of_element_located((By.ID, 'com.android.packageinstaller:id/done_button')))
-            complete_btn.click()
-            logging.info('安装成功')
-        except:
-            traceback.print_exc()
-            logging.error('游戏安装失败')
-
     def remove_apps_from_screen(self):
         logging.info('开始卸载游戏')
         self.driver.press_keycode(3)
-        games = self.driver.find_elements_by_xpath('//*[@resource-id="com.vphone.launcher:id/workspace"]/*[1]/*[1]/*')[::-1]
+        sleep(2)
+        games = self.driver.find_elements_by_xpath('//*[@resource-id="com.android.launcher:id/workspace"]/*[1]/*[1]/*')[::-1]
+        logging.info('共发现%d个应用' % len(games))
         action = TouchAction(self.driver)
-        uninstall_pos = {'x': 190, 'y': 100}
+        uninstall_pos = {'x': 380, 'y': 140}
         for game in games:
             game_name = game.text.strip()
             if game_name == '腾讯新闻':
                 break
             action.long_press(el=game).move_to(**uninstall_pos).release().perform()
-            self.driver.find_element_by_id('com.android.packageinstaller:id/ok_button').click()
+            self.driver.find_element_by_id('android:id/button1').click()
             sleep(3)
             logging.info('%s 卸载成功' % game_name)
 

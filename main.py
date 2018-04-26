@@ -1,8 +1,9 @@
 import os
 from sign_in import SignIn
-from params import exe_files
+from params import exe_files, port
 from time import sleep
 import pyautogui as pg
+
 
 def setUp():
     for exe_file in exe_files:
@@ -12,8 +13,13 @@ def setUp():
         sleep(5)
         pos = pg.locateCenterOnScreen('start_appium.png')
     pg.click(*pos)
-    sleep(20)
-    os.popen('adb connect 127.0.0.1:62001')
+    sleep(15)
+    return_code = os.system('adb connect 127.0.0.1:%s' % port)
+    sleep(2)
+    while return_code != 0:
+        sleep(5)
+        return_code = os.system('adb connect 127.0.0.1:%s' % port)
+        sleep(2)
 
 
 def tearDown():
